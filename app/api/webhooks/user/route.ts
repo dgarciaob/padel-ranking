@@ -57,15 +57,24 @@ export async function POST(req: Request) {
   const { id } = evt.data;
   const eventType = evt.type;
 
-  await db.user.upsert({
-    where: { id: id as string },
-    create: {
-      id: id as string,
-      firstName: payload.data.first_name,
-      lastName: payload.data.last_name,
-    },
-    update: {},
-  });
+  if (eventType !== "user.deleted") {
+    await db.user.upsert({
+      where: { id: id as string },
+      create: {
+        id: id as string,
+        firstName: payload.data.first_name,
+        lastName: payload.data.last_name,
+      },
+      update: {
+        firstName: payload.data.first_name,
+        lastName: payload.data.last_name,
+      },
+    });
+  } else {
+    await db.user.delete({
+      where: { id: id as string },
+    });
+  }
 
   return new Response("", { status: 200 });
 }
